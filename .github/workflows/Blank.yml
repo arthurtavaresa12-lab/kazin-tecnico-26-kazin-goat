@@ -1,5 +1,7 @@
 # Gerar APK + AAB Android V29
 
+name: Gerar APK e AAB Android V29
+
 on:
   workflow_dispatch:
   push:
@@ -25,39 +27,37 @@ jobs:
 
       - name: Instalar Android 16
         run: |
-          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+          sdkmanager "platform-tools"
+          sdkmanager "platforms;android-36"
+          sdkmanager "build-tools;36.0.0"
 
       - name: Preparar projeto Android V29
         run: |
-          unzip -o Kazin_Tecnico_2026_V29_APP.zip -d android_project
-          find android_project -name gradlew -type f -exec chmod +x {} \;
+          unzip -o Kazin_Tecnico_2026_V29_APP.zip
+          find . -name gradlew -type f
 
       - name: Configurar Gradle
         uses: gradle/actions/setup-gradle@v4
-      
-        gradle-version: '8.10'
+        with:
+          gradle-version: '8.10'
+
+      - name: Dar permissão ao Gradle
+        run: |
+          find . -name gradlew -type f -exec chmod +x {} \;
 
       - name: Gerar APK + AAB
         working-directory: android_project
         run: |
-          gradle assembleDebug bundleRelease --no-daemon
+          ./gradlew assembleDebug bundleRelease
 
       - name: Salvar APK
         uses: actions/upload-artifact@v4
         with:
-          app/
-
-         build.gradle
-         settings.gradle
-         gradle.properties
-         gradlew
-         gradlew.bat
-         Kazin_Tecnico_2026_V29_APP.zip
-       .github/
-  
+          name: Kazin-Tecnico-V29-APK
+          path: android_project/**/build/outputs/apk/**/*.apk
 
       - name: Salvar AAB
         uses: actions/upload-artifact@v4
         with:
           name: Kazin-Tecnico-V29-AAB
-          path: android_project/**/build/outputs/bundle/release/*.aab
+          path: android_project/**/build/outputs/bundle/**/*.aab
