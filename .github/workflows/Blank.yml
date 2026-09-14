@@ -46,9 +46,12 @@ jobs:
           find . -name gradlew -type f -exec chmod +x {} \;
 
       - name: Gerar APK + AAB
-        working-directory: android_project
-        run: |
-          ./gradlew assembleDebug bundleRelease
+  run:|
+    chmod +x ./gradlew
+    ./gradlew assembleDebug bundleRelease
+        
+        
+          
 
       - name: Salvar APK
         uses: actions/upload-artifact@v4
