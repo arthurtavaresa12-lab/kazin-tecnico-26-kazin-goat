@@ -46,9 +46,9 @@ jobs:
           find . -name gradlew -type f -exec chmod +x {} \;
 
       - name: Gerar APK + AAB
-  run:|
-    chmod +x ./gradlew
-    ./gradlew assembleDebug bundleRelease
+       run:|
+       chmod +x ./gradlew
+       ./gradlew assembleDebug bundleRelease
         
         
           
