@@ -25,29 +25,40 @@ jobs:
 
       - name: Instalar Android SDK
         run: |
-          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          sdkmanager "platform-tools"
+          sdkmanager "platforms;android-35"
+          sdkmanager "build-tools;35.0.0"
 
       - name: Preparar projeto
         run: |
-          mkdir -p android_project
+          rm -rf android_project
+          mkdir android_project
           unzip -o Kazin_Tecnico_2026_V29_APP.zip -d android_project
 
-      - name: Encontrar projeto Android
+      - name: Localizar projeto Android
         run: |
-          GRADLEW=$(find android_project -name gradlew -type f | head -n 1)
-          if [ -z "$GRADLEW" ]; then
-            echo "ERRO: gradlew não encontrado"
-            find android_project -maxdepth 4 -type f | head -100
-            exit 1
+          if [ -d "android_project/kazin_app" ]; then
+            echo "PROJECT_DIR=android_project/kazin_app" >> "$GITHUB_ENV"
+          else
+            PROJECT_DIR=$(find android_project -name settings.gradle -o -name settings.gradle.kts | head -n 1)
+            if [ -z "$PROJECT_DIR" ]; then
+              echo "Projeto Android não encontrado."
+              find android_project -maxdepth 4 -type f
+              exit 1
+            fi
+            echo "PROJECT_DIR=$(dirname "$PROJECT_DIR")" >> "$GITHUB_ENV"
           fi
 
-          PROJECT_DIR=$(dirname "$GRADLEW")
-          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
-          echo "Projeto encontrado em: $PROJECT_DIR"
+      - name: Instalar Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10'
 
-      - name: Dar permissão ao Gradle
+      - name: Preparar Gradle Wrapper
         run: |
-          chmod +x "$PROJECT_DIR/gradlew"
+          cd "$PROJECT_DIR"
+          gradle wrapper --gradle-version 8.10
+          chmod +x gradlew
 
       - name: Gerar APK Debug
         run: |
@@ -64,11 +75,11 @@ jobs:
         with:
           name: Kazin-Tecnico-V29-APK
           path: |
-            **/app/build/outputs/apk/debug/*.apk
+            android_project/kazin_app/app/build/outputs/apk/debug/*.apk
 
       - name: Salvar AAB
         uses: actions/upload-artifact@v4
         with:
           name: Kazin-Tecnico-V29-AAB
           path: |
-            **/app/build/outputs/bundle/release/*.aab
+            android_project/kazin_app/app/build/outputs/bundle/release/*.aab
